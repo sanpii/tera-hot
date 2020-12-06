@@ -71,6 +71,12 @@ impl Template {
         tera.full_reload()
     }
 
+    pub fn register_function<F: tera::Function + 'static>(&mut self, name: &str, function: F) {
+        let mut tera = self.tera.write().unwrap();
+
+        tera.register_function(name, function)
+    }
+
     #[cfg(not(debug_assertions))]
     pub fn watch(self) {}
 }
