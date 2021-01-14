@@ -77,6 +77,12 @@ impl Template {
         tera.register_function(name, function)
     }
 
+    pub fn register_filter<F: tera::Filter + 'static>(&mut self, name: &str, filter: F) {
+        let mut tera = self.tera.write().unwrap();
+
+        tera.register_filter(name, filter)
+    }
+
     #[cfg(not(debug_assertions))]
     pub fn watch(self) {}
 }
