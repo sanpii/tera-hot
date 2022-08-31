@@ -8,5 +8,5 @@ license = "MIT"
 
 [dependencies]
 log = "0.4"
-notify = "4.0"
+notify = "5.0"
 tera = "1.5"

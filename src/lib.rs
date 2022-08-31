@@ -28,47 +28,29 @@ impl Template {
 
     #[cfg(debug_assertions)]
     pub fn watch(self) {
-        let (tx, rx) = std::sync::mpsc::channel();
+        use notify::Watcher;
 
-        std::thread::spawn(move || {
-            use notify::Watcher;
+        let mut watcher = notify::recommended_watcher(move |res| {
+            match res {
+                Ok(event) => {
+                    log::info!("reloading templates: {event:?}");
 
-            let timeout = std::time::Duration::from_secs(2);
-            let mut watcher = notify::watcher(tx, timeout).unwrap();
+                    let mut tera = self.tera.write().unwrap();
 
-            log::debug!("watching {} for changes", self.template_dir);
-
-            watcher
-                .watch(&self.template_dir, notify::RecursiveMode::Recursive)
-                .unwrap();
-
-            loop {
-                if rx.try_recv().is_ok() {
-                    log::info!("shutting down template watcher");
-                    return;
-                }
-
-                match rx.recv_timeout(timeout) {
-                    Ok(event) => {
-                        log::info!("reloading templates: {:?}", event);
-
-                        match self.full_reload() {
-                            Ok(_) => log::info!("templates reloaded"),
-                            Err(e) => log::error!("failed to reload templates: {}", e),
-                        }
+                    match tera.full_reload() {
+                        Ok(_) => log::info!("templates reloaded"),
+                        Err(e) => log::error!("failed to reload templates: {e}"),
                     }
-                    Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {}
-                    Err(e) => log::warn!("watch error: {:?}", e),
                 }
+                Err(e) => log::warn!("watch error: {e:?}"),
             }
-        });
-    }
+        }).unwrap();
 
-    #[cfg(debug_assertions)]
-    fn full_reload(&self) -> tera::Result<()> {
-        let mut tera = self.tera.write().unwrap();
+        log::debug!("watching {} for changes", self.template_dir);
 
-        tera.full_reload()
+        watcher
+            .watch(&std::path::PathBuf::from(&self.template_dir), notify::RecursiveMode::Recursive)
+            .unwrap();
     }
 
     pub fn register_function<F: tera::Function + 'static>(&mut self, name: &str, function: F) {
