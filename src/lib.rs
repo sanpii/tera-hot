@@ -8,10 +8,10 @@ pub struct Template {
 
 impl Template {
     pub fn new(template_dir: &str) -> Self {
-        let path = format!("{}/**/*", template_dir);
+        let path = format!("{template_dir}/**/*");
         let tera = match tera::Tera::new(&path) {
             Ok(tera) => tera,
-            Err(err) => panic!("Parsing error(s): {}", err),
+            Err(err) => panic!("Parsing error(s): {err}"),
         };
 
         Self {
