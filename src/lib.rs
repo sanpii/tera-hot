@@ -7,6 +7,7 @@ pub struct Template {
 }
 
 impl Template {
+    #[must_use]
     pub fn new(template_dir: &str) -> Self {
         let path = format!("{template_dir}/**/*");
         let tera = match tera::Tera::new(&path) {
