@@ -57,19 +57,19 @@ impl Template {
     pub fn register_function<F: tera::Function + 'static>(&mut self, name: &str, function: F) {
         let mut tera = self.tera.write().unwrap();
 
-        tera.register_function(name, function)
+        tera.register_function(name, function);
     }
 
     pub fn register_filter<F: tera::Filter + 'static>(&mut self, name: &str, filter: F) {
         let mut tera = self.tera.write().unwrap();
 
-        tera.register_filter(name, filter)
+        tera.register_filter(name, filter);
     }
 
     pub fn register_tester<T: tera::Test + 'static>(&mut self, name: &str, tester: T) {
         let mut tera = self.tera.write().unwrap();
 
-        tera.register_tester(name, tester)
+        tera.register_tester(name, tester);
     }
 
     #[cfg(not(debug_assertions))]
