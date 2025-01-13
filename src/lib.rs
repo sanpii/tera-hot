@@ -31,26 +31,28 @@ impl Template {
     pub fn watch(self) {
         use notify::Watcher;
 
-        let mut watcher = notify::recommended_watcher(move |res| {
-            match res {
-                Ok(event) => {
-                    log::info!("reloading templates: {event:?}");
+        let mut watcher = notify::recommended_watcher(move |res| match res {
+            Ok(event) => {
+                log::info!("reloading templates: {event:?}");
 
-                    let mut tera = self.tera.write().unwrap();
+                let mut tera = self.tera.write().unwrap();
 
-                    match tera.full_reload() {
-                        Ok(_) => log::info!("templates reloaded"),
-                        Err(e) => log::error!("failed to reload templates: {e}"),
-                    }
+                match tera.full_reload() {
+                    Ok(_) => log::info!("templates reloaded"),
+                    Err(e) => log::error!("failed to reload templates: {e}"),
                 }
-                Err(e) => log::warn!("watch error: {e:?}"),
             }
-        }).unwrap();
+            Err(e) => log::warn!("watch error: {e:?}"),
+        })
+        .unwrap();
 
         log::debug!("watching {} for changes", self.template_dir);
 
         watcher
-            .watch(&std::path::PathBuf::from(&self.template_dir), notify::RecursiveMode::Recursive)
+            .watch(
+                &std::path::PathBuf::from(&self.template_dir),
+                notify::RecursiveMode::Recursive,
+            )
             .unwrap();
     }
 
