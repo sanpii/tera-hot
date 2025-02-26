@@ -2,7 +2,7 @@
 name = "tera-hot"
 version = "0.5.0"
 authors = ["Sanpi <sanpi@homecomputing.fr>"]
-edition = "2021"
+edition = "2024"
 description = "Hot reload tera template"
 license = "MIT"
 
