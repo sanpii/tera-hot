@@ -9,11 +9,12 @@ pub struct Template {
 impl Template {
     #[must_use]
     pub fn new(template_dir: &str) -> Self {
+        let mut tera = tera::Tera::default();
+
         let path = format!("{template_dir}/**/*");
-        let tera = match tera::Tera::new(&path) {
-            Ok(tera) => tera,
-            Err(err) => panic!("Parsing error(s): {err}"),
-        };
+        if let Err(err) = tera.load_from_glob(&path) {
+            panic!("Parsing error(s): {err}");
+        }
 
         Self {
             tera: Arc::new(RwLock::new(tera)),
@@ -21,7 +22,7 @@ impl Template {
         }
     }
 
-    pub fn render(&self, template: &str, context: &tera::Context) -> tera::Result<String> {
+    pub fn render(&self, template: &str, context: &tera::Context) -> tera::TeraResult<String> {
         let tera = self.tera.read().unwrap();
 
         tera.render(template, context)
@@ -56,22 +57,47 @@ impl Template {
             .unwrap();
     }
 
-    pub fn register_function<F: tera::Function + 'static>(&mut self, name: &str, function: F) {
+    pub fn register_function<Func, Res>(
+        &mut self,
+        name: impl Into<std::borrow::Cow<'static, str>>,
+        function: Func,
+    ) where
+        Func: Fn(tera::Kwargs, &tera::State<'_>) -> Res + Sync + Send + 'static,
+        Res: tera::FunctionResult,
+    {
         let mut tera = self.tera.write().unwrap();
 
         tera.register_function(name, function);
     }
 
-    pub fn register_filter<F: tera::Filter + 'static>(&mut self, name: &str, filter: F) {
+    pub fn register_filter<Func, Arg, Res>(
+        &mut self,
+        name: impl Into<std::borrow::Cow<'static, str>>,
+        filter: Func,
+    ) where
+        Func: tera::Filter<Arg, Res>
+            + for<'a> tera::Filter<<Arg as tera::ArgFromValue<'a>>::Output, Res>,
+        Arg: for<'a> tera::ArgFromValue<'a>,
+        Res: tera::FunctionResult,
+    {
         let mut tera = self.tera.write().unwrap();
 
         tera.register_filter(name, filter);
     }
 
-    pub fn register_tester<T: tera::Test + 'static>(&mut self, name: &str, tester: T) {
+    pub fn register_test<Func, Arg, Res>(
+        &mut self,
+        name: impl Into<std::borrow::Cow<'static, str>>,
+        test: Func,
+    ) where
+        Func:
+            tera::Test<Arg, Res> + for<'a> tera::Test<<Arg as tera::ArgFromValue<'a>>::Output, Res>,
+        Arg: for<'a> tera::ArgFromValue<'a>,
+        Res: tera::TestResult,
+    {
         let mut tera = self.tera.write().unwrap();
 
-        tera.register_tester(name, tester);
+        tera.register_test(name, test);
     }
 
     #[cfg(not(debug_assertions))]

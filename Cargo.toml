@@ -9,4 +9,7 @@ license = "MIT"
 [dependencies]
 log = "0.4"
 notify = "8.0"
-tera = "1.5"
+
+[dependencies.tera]
+version = "2.0"
+features = ["glob_fs"]
