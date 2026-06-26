@@ -5,6 +5,7 @@ authors = ["Sanpi <sanpi@homecomputing.fr>"]
 edition = "2024"
 description = "Hot reload tera template"
 license = "MIT"
+repository = "https://github.com/sanpii/tera-hot/"
 
 [dependencies]
 log = "0.4"
